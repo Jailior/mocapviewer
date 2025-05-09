@@ -51,6 +51,15 @@ target_include_directories(${PROJECT_NAME} PRIVATE
     ${GLM_INCLUDE_DIRS}
 )
 
+# copy shaders into build dir
+file(GLOB SHADERS "${CMAKE_SOURCE_DIR}/shaders/*")
+file(MAKE_DIRECTORY "${CMAKE_BINARY_DIR}/shaders")
+
+foreach(SHADER ${SHADERS})
+    get_filename_component(FILE_NAME ${SHADER} NAME)
+    configure_file(${SHADER} "${CMAKE_BINARY_DIR}/shaders/${FILE_NAME}" COPYONLY)
+endforeach()
+
 target_link_libraries(${PROJECT_NAME}
     glfw
     glad

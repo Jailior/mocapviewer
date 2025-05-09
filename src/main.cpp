@@ -1,6 +1,35 @@
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
+// #include <glm/glm.hpp>
 #include <iostream>
+#include <cmath>
+
+#include "EBO.h"
+#include "ShaderClass.h"
+#include "VAO.h"
+#include "VBO.h"
+
+#define WINDOW_WIDTH    800
+#define WINDOW_HEIGHT   800
+
+
+
+GLfloat vertices[] = 
+{
+   -0.5f, -0.5f * float(sqrt(3)) / 3,     0.0f,     0.8f, 0.3f, 0.02f,
+    0.5f, -0.5f * float(sqrt(3)) / 3,     0.0f,     0.8f, 0.3f, 0.02f,
+    0.0f,  0.5f * float(sqrt(3)) * 2 / 3, 0.0f,     1.0f, 0.6f, 0.32f,
+   -0.25f, 0.5f * float(sqrt(3)) / 6,     0.0f,     0.9f, 0.5f, 0.17f,
+    0.25f, 0.5f * float(sqrt(3)) / 6,     0.0f,     0.9f, 0.5f, 0.17f,
+    0.0f, -0.5f * float(sqrt(3)) / 3,     0.0f,     0.8f, 0.3f, 0.02f
+};
+
+GLuint indices[] = 
+{
+    0, 3, 5,
+    3, 2, 4,
+    5, 4, 1
+};
 
 int main() {
     if(!glfwInit()) {
@@ -15,7 +44,7 @@ int main() {
 
 
     // Create Window
-    GLFWwindow* window = glfwCreateWindow(800, 800, "Motion Capture Viewer", nullptr, nullptr);
+    GLFWwindow* window = glfwCreateWindow(WINDOW_WIDTH, WINDOW_HEIGHT, "Motion Capture Viewer", nullptr, nullptr);
 
     if (window == nullptr) {
         std::cerr << "Failed to create window\n";
@@ -27,7 +56,27 @@ int main() {
     glfwMakeContextCurrent(window);
 
     gladLoadGL();
-    glViewport(0, 0, 800, 800);
+    glViewport(0, 0, WINDOW_WIDTH, WINDOW_HEIGHT);
+
+    Shader shaderprogram("shaders/default.vert", "shaders/default.frag");
+
+    // Vertex Array Object
+    VAO vao;
+    vao.Bind();
+
+    // Vertex Buffer Object
+    VBO vbo(vertices, sizeof(vertices));
+
+    // Element Buffer Object
+    EBO ebo(indices, sizeof(indices));
+
+    vao.LinkAttrib(vbo, 0, 3, GL_FLOAT, 6 * sizeof(float), (void*)0);
+    vao.LinkAttrib(vbo, 1, 3, GL_FLOAT, 6 * sizeof(float), (void*)(3 * sizeof(float)));
+
+    // unbind all objects
+    vao.Unbind();
+    vbo.Unbind();
+    ebo.Unbind();
 
     while(!glfwWindowShouldClose(window)) {
 
@@ -37,11 +86,22 @@ int main() {
 
         // TODO: Add drawing logic here
 
+        shaderprogram.Activate();
+        vao.Bind();
+
+        glDrawElements(GL_TRIANGLES, 9, GL_UNSIGNED_INT, 0);
         glfwSwapBuffers(window);
-        glfwPollEvents();
+
+        glfwPollEvents(); // responsive window
     }
+
+    vao.Delete();
+    vbo.Delete();
+    ebo.Delete();
+    shaderprogram.Delete();
 
     glfwDestroyWindow(window);
     glfwTerminate();
+    
     return 0;
 }
