@@ -12,6 +12,7 @@
 #include "VAO.h"
 #include "VBO.h"
 #include "Texture.h"
+#include "Camera.h"
 
 const unsigned int WINDOW_WIDTH =    800;
 const unsigned int WINDOW_HEIGHT =   800;
@@ -35,15 +36,6 @@ GLuint indices[] = {
 	2, 3, 4,
 	3, 0, 4
 };
-
-void key_callback(GLFWwindow* window, int key, int scancode, int action, int mods) {
-    if (key == GLFW_KEY_E && action == GLFW_PRESS) {
-        scaleValue += 0.1f;
-    } else if (key == GLFW_KEY_Q && action == GLFW_PRESS) {
-        scaleValue -= 0.1f;
-    }
-}
-
 
 int main() {
     if(!glfwInit()) {
@@ -93,20 +85,13 @@ int main() {
     vbo.Unbind();
     ebo.Unbind();
 
-    // Gets ID of uniform float called "scale"
-    GLuint uniID = glGetUniformLocation(shaderProgram.ID, "scale");
-
     // Texture
     Texture brick("assets/brick-512x512.png", GL_TEXTURE_2D, GL_TEXTURE0, GL_RGB, GL_UNSIGNED_BYTE);
     brick.texUnit(shaderProgram, "tex0", 0);
 
-    // Callback interrupt when any key is pressed
-    glfwSetKeyCallback(window, key_callback);
-
-    float rotation = 0.0f;
-    double prevTime = glfwGetTime();
-
     glEnable(GL_DEPTH_TEST);
+
+    Camera camera(WINDOW_WIDTH, WINDOW_HEIGHT, glm::vec3(0.0f, 0.0f, 2.0f));
 
     while(!glfwWindowShouldClose(window)) {
 
@@ -114,31 +99,11 @@ int main() {
         glClearColor(0.07f, 0.13f, 0.17f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-        // TODO: Add drawing logic here
         shaderProgram.Activate();
 
-        double currTime = glfwGetTime();
-        if (currTime - prevTime >= 1 / 2) {
-            rotation += 0.5f;
-            prevTime = currTime;
-        }
+        camera.Inputs(window);
+        camera.Matrix(45.0f, 0.1f, 100.0f, shaderProgram, "camMatrix");
 
-        glm::mat4 model = glm::mat4(1.0f);
-        glm::mat4 view = glm::mat4(1.0f);
-        glm::mat4 proj = glm::mat4(1.0f);
-
-        model = glm::rotate(model, glm::radians(rotation), glm::vec3(0.0f, 1.0f, 0.0f));
-        view = glm::translate(view, glm::vec3(0.0f, -0.5f, -2.0f));
-        proj = glm::perspective(glm::radians(45.0f), (float) (WINDOW_WIDTH / WINDOW_HEIGHT) , 0.1f, 100.0f);
-
-        int modelLoc = glGetUniformLocation(shaderProgram.ID, "model");
-        glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(model));
-        int viewLoc = glGetUniformLocation(shaderProgram.ID, "view");
-        glUniformMatrix4fv(viewLoc, 1, GL_FALSE, glm::value_ptr(view));
-        int projLoc = glGetUniformLocation(shaderProgram.ID, "proj");
-        glUniformMatrix4fv(projLoc, 1, GL_FALSE, glm::value_ptr(proj));
-
-        glUniform1f(uniID, scaleValue);
         brick.Bind();
 
         vao.Bind();
