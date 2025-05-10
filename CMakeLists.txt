@@ -9,8 +9,6 @@ set_property(GLOBAL PROPERTY USE_FOLDERS ON)
 include(FetchContent)
 
 # GLFW
-# find_package(GLFW3 REQUIRED)
-
 FetchContent_Declare(
   glfw
   GIT_REPOSITORY https://github.com/glfw/glfw.git
@@ -23,8 +21,6 @@ FetchContent_MakeAvailable(glfw)
 find_package(OpenGL REQUIRED)
 
 # Assimp
-# find_package(assimp REQUIRED)
-
 # FetchContent_Declare(
 #   assimp
 #   GIT_REPOSITORY https://github.com/assimp/assimp.git
@@ -58,6 +54,16 @@ file(MAKE_DIRECTORY "${CMAKE_BINARY_DIR}/shaders")
 foreach(SHADER ${SHADERS})
     get_filename_component(FILE_NAME ${SHADER} NAME)
     configure_file(${SHADER} "${CMAKE_BINARY_DIR}/shaders/${FILE_NAME}" COPYONLY)
+endforeach()
+
+
+# copy assets into build dir
+file(GLOB ASSETS "${CMAKE_SOURCE_DIR}/assets/*")
+file(MAKE_DIRECTORY "${CMAKE_BINARY_DIR}/assets")
+
+foreach(ASSET ${ASSETS})
+    get_filename_component(FILE_NAME ${ASSET} NAME)
+    configure_file(${ASSET} "${CMAKE_BINARY_DIR}/assets/${FILE_NAME}" COPYONLY)
 endforeach()
 
 target_link_libraries(${PROJECT_NAME}
